@@ -41,12 +41,14 @@ function loss(scfres1,scfres2)
 end 
 
 # Seeds -> Positions
-Ndatapoints = 100
+Ndatapoints = 1
 seeds = 1:Ndatapoints
 positions = [sample_positions(seed) for seed in seeds]
 
-ground_truth = sin
-xc = LocalNonlinearity(ground_truth)
-scfres_data = [scfres_from_positions(position,xc) for position in positions]
+k = 5
+A = 0.05
+xc_ground_truth = LocalNonlinearity(x-> (-3/4 * cbrt(3/π * x) *x ))
+scfres_data = [scfres_from_positions(position,xc_ground_truth) for position in positions];
 
-xrange = extrema(scfres.ρ)
+xrange = extrema(scfres_data[1].ρ)
+
