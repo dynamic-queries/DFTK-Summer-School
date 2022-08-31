@@ -52,3 +52,12 @@ scfres_data = [scfres_from_positions(position,xc_ground_truth) for position in p
 
 xrange = extrema(scfres_data[1].ρ)
 
+# XC surrogate model
+nparams = 10
+xsbasis = collect(range(0, 0.3, length=nparams))
+params = randn(nparams)
+lengtscale = xsbasis[2] - xsbasis[1]
+rbf(x1, x2) = exp(-0.5*sum(abs2, x1 - x2) / lengtscale^2)
+xc_model(x, params) = sum(params[i] * rbf(xsbasis[i], x) for i in 1:nparams)
+
+
