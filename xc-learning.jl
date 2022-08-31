@@ -14,10 +14,6 @@ struct TermCustomXC <: DFTK.Term
     f
 end
 
-function ChainRulesCore.rrule(T::Type{CustomXC}, f)
-    return T(f), ΔTf -> (NoTangent(), ΔTf.f)
-end
-
 function DFTK.ene_ops(term::TermCustomXC, basis, ψ, occ; ρ, kwargs...)
     @assert basis.model.spin_polarization ∈ (:none, :spinless)
     T = eltype(basis)
@@ -29,8 +25,6 @@ function DFTK.ene_ops(term::TermCustomXC, basis, ψ, occ; ρ, kwargs...)
 end
 
 function DFTK.apply_kernel(term::TermCustomXC, δρ; ρ, kwargs...)
-    # ρtot = total_density(ρ)
-    # δρtot = total_density(δρ) 
     fp(ρx) = ForwardDiff.derivative(f, ρx)
     fpp(ρx) = ForwardDiff.derivative(fp, ρx)
     fpp.(fp.(ρ)) .* δρ
@@ -48,7 +42,7 @@ atoms = [H]
 lattice = 16 * Mat3(Diagonal(ones(3)))
 
 function make_model(xc::CustomXC)
-    terms = [Kinetic(), AtomicLocal(), xc] # TODO support more term types
+    terms = [Kinetic(), AtomicLocal(), xc]
     Model(lattice, atoms, positions; terms)
 end
 make_basis(model::Model) = PlaneWaveBasis(model; Ecut, kgrid=kgrid)
@@ -63,8 +57,8 @@ function total_energy(basis) # debug: do not use Hellman-Feynman
     sum(energies)
 end
 
-make_f(param) = x -> param*sin(x)
-xc = CustomXC(make_f(0.05))
+ground_truth = sin
+xc = CustomXC(ground_truth)
 basis = make_basis(xc)
 scfres = self_consistent_field(basis, is_converged=DFTK.ScfConvergenceDensity(1e-4))
 
